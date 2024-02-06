@@ -1,0 +1,9 @@
+
+#ifndef _SRC_CONSTANTS_H_
+#define _SRC_CONSTANTS_H_
+
+#define MAX_BLK_SIZE 1000000
+#define EMPTY_BLK_SIZE 1000
+#define TXN_SIZE 1000
+
+#endif // _SRC_CONSTANTS_H_
