@@ -3,20 +3,24 @@
 
 std::mt19937_64 Simulator::rng(std::chrono::steady_clock::now().time_since_epoch().count());
 
-Simulator::Ptr Simulator::CreatePtr(std::shared_ptr<SimulationParams> params) {
-    return make_shared<Simulator>(std::move(params));
+Simulator::Ptr Simulator::CreatePtr(std::shared_ptr<SimulationParams> params)
+{
+    return std::make_shared<Simulator>(std::move(params));
 }
 
-Simulator::Simulator(std::shared_ptr<SimulationParams> params) 
-    : network_(std::make_shared<Network>(params->network_params)),
-    params_(std::move(params)) {}
+Simulator::Simulator(std::shared_ptr<SimulationParams> params)
+    : params_(std::move(params))
+{
+}
 
-void Simulator::Schedule(Event::Ptr event, SimTime delay = 0.0) {
+void Simulator::Schedule(EventPtr event, SimTime delay)
+{
     queued_events_.emplace(now_ + delay, event);
 }
 
-bool Simulator::Step() {
-    if(queued_events_.empty())
+bool Simulator::Step()
+{
+    if (queued_events_.empty())
         return false;
     auto qe = queued_events_.top();
     queued_events_.pop();
@@ -26,14 +30,20 @@ bool Simulator::Step() {
     return true;
 }
 
-void Simulator::Run() {
-    while( Step() ) {}
+void Simulator::Run()
+{
+    // Do initializations which can't be done in the constructor (i.e the ones which use
+    // shared_from_this() )
+    network_ = std::make_shared<Network>(params_->network_params, shared_from_this());
+    while (Step())
+    {
+    }
 }
 
-Simulator::QueuedEvent::QueuedEvent(SimTime time, Event::Ptr event) 
+Simulator::QueuedEvent::QueuedEvent(SimTime time, EventPtr event)
     : time(time), event(event) {}
 
-bool Simulator::QueuedEvent::operator<(const QueuedEvent &other) const {
+bool Simulator::QueuedEvent::operator<(const QueuedEvent &other) const
+{
     return time > other.time;
 }
-

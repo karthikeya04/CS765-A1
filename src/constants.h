@@ -5,5 +5,7 @@
 #define MAX_BLK_SIZE 1000000
 #define EMPTY_BLK_SIZE 1000
 #define TXN_SIZE 1000
+#define MIN_NEIGHBOURS 3
+#define MAX_NEIGHBOURS 6
 
 #endif // _SRC_CONSTANTS_H_

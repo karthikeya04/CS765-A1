@@ -7,16 +7,15 @@
 
 #include "types.h"
 #include "macros.h"
+#include "peer.h"
 
-// Forward declarations
-class Peer;
-
-class Network {
- public:
+class Network
+{
+public:
     typedef std::shared_ptr<Network> Ptr;
-    typedef std::weak_ptr<Network> WeakPtr;
 
-    struct NetworkParams {
+    struct NetworkParams
+    {
 
         // No of. peers in the network
         int num_peers;
@@ -28,32 +27,37 @@ class Network {
         int num_low_cpu;
     };
 
-    struct Link {
-        uint32 u;
+    struct Link
+    {
+        Peer::Ptr p;
         double latency;
     };
 
-    Network(NetworkParams params);
+    Network(std::shared_ptr<NetworkParams> params,
+            SimulatorPtr sim);
 
-    void GenerateRandomGraph();
+    typedef std::vector<PeerPtr> Peers;
+    typedef std::vector<Link> Links;
+    typedef std::vector<Links> Network_t;
+    typedef std::vector<std::vector<int>> Graph;
 
-    typedef std::vector<Peer> Peers;
-    typedef std::vector<Link> Graph;
+private:
+    Graph GenerateRandomGraph(int N);
+    bool IsConnected(const Graph &graph);
+    void AddEventsAtPeer(PeerPtr peer);
 
- private:
-    NetworkParams params_;
+private:
+    std::shared_ptr<NetworkParams> params_;
 
     // list of peers (i.e nodes) in the network
     Peers peers_;
 
-    // graph_[u] contains all the links originated from u
-    Graph graph_;
+    // net_[u] contains all the links originated from u
+    Network_t net_;
 
-    // static variables
- private:
-    static std::mt19937_64 rng;
+    SimulatorWeakPtr sim_;
 
- private:
+private:
     DISALLOW_COPY_AND_ASSIGN(Network)
 };
 

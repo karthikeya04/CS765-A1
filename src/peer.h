@@ -5,37 +5,39 @@
 #include <memory>
 
 #include "types.h"
-#include "simulator.h"
+#include "blockchain.h"
 
-// Forward declarations
-class BlockChain;
+class Simulator;
 
-class Peer {
- public:
-    typedef std::shared_ptr<Peer> Ptr;
-    typedef std::weak_ptr<Peer> WeakPtr;
+class Peer
+{
+public:
+   typedef std::shared_ptr<Peer> Ptr;
 
-    typedef uint32 Id;
+   Peer(int id, bool is_low_cpu, bool is_slow_peer, SimulatorPtr sim);
+   DISALLOW_COPY_AND_ASSIGN(Peer)
 
-    Peer(Simulator::Ptr sim);
-    DISALLOW_COPY_AND_ASSIGN(Peer)
+   friend class GenAndBroadcastTxn;
+   friend class ReceiveAndForwardTxn;
+   friend class BroadcastMinedBlk;
+   friend class ReceiveAndForwardBlk;
 
-    friend GenAndBroadcastTxn;
-    friend ReceiveAndForwardTxn;
-    friend BroadcastMinedBlk;
-    friend ReceiveAndForwardBlk;
- private:
-    // Event Ops
-    void GenAndBroadcastTxnOp();
-    void ReceiveAndForwardTxnOp(std::shared_ptr<Blockchain::Txn> txn);
-    void BroadcastMinedBlkOp();
-    void ReceiveAndForwardBlkOp(std::shared_ptr<Blockchain::Block> blk);
+private:
+   // Event Ops
+   void GenAndBroadcastTxnOp();
+   void ReceiveAndForwardTxnOp(std::shared_ptr<Blockchain::Txn> txn);
+   void BroadcastMinedBlkOp();
+   void ReceiveAndForwardBlkOp(std::shared_ptr<Blockchain::Block> blk);
 
- private:
-    Id id_;
-    Simulator::Ptr sim_;
-    RealExpDistr txn_gen_distr_;
+   bool IsLowCpu() const;
+   bool isSlowPeer() const;
 
+private:
+   int id_;
+   SimulatorPtr sim_;
+   RealExpDistr txn_gen_distr_;
+   bool is_low_cpu_;
+   bool is_slow_peer_;
 };
 
 #endif // _SRC_PEER_H_
