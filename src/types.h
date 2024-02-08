@@ -10,6 +10,8 @@
 #include <ext/pb_ds/assoc_container.hpp> // Common file
 #include <ext/pb_ds/tree_policy.hpp>     // Including tree_order_statistics_node_update
 
+#include "macros.h"
+
 typedef int64_t int64;
 typedef int32_t int32;
 typedef int8_t int8;
@@ -22,10 +24,6 @@ class Network;
 class Peer;
 class Event;
 class Blockchain;
-
-#define DEFINE_PTR_TYPES(ClassName)                    \
-    typedef std::shared_ptr<ClassName> ClassName##Ptr; \
-    typedef std::weak_ptr<ClassName> ClassName##WeakPtr;
 
 DEFINE_PTR_TYPES(Simulator)
 DEFINE_PTR_TYPES(Network)

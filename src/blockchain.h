@@ -12,6 +12,8 @@ class Blockchain
 public:
     struct Txn
     {
+        static int64 counter;
+        
         int64 id;
         int payer_id;
         int payee_id;
@@ -19,6 +21,9 @@ public:
 
     struct Block
     {
+        static int64 counter;
+
+        int64 id;
         // parent block id
         int par_block_id;
 

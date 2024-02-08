@@ -8,4 +8,10 @@
 #define MIN_NEIGHBOURS 3
 #define MAX_NEIGHBOURS 6
 
+// in seconds
+#define MIN_PROPAGATION_DELAY 0.01
+#define MAX_PROPAGATION_DELAY 0.5
+#define FAST_LINK_SPEED (100 * 1e6)
+#define SLOW_LINK_SPEED (5 * 1e6)
+
 #endif // _SRC_CONSTANTS_H_

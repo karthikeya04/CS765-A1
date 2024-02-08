@@ -7,6 +7,13 @@ Peer::Peer(int id, bool is_low_cpu, bool is_slow_peer,
 {
 }
 
+void Peer::AddLink(LinkPtr link) {
+
+}
+
+bool Peer::IsLowCpu() const { return is_low_cpu_; }
+bool Peer::IsSlow() const { return is_slow_peer_; }
+
 void Peer::GenAndBroadcastTxnOp(){
 
 };

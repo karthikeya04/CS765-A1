@@ -13,7 +13,7 @@ Simulator::Simulator(std::shared_ptr<SimulationParams> params)
 {
 }
 
-void Simulator::Schedule(EventPtr event, SimTime delay)
+void Simulator::Schedule(EventPtr event, double delay)
 {
     queued_events_.emplace(now_ + delay, event);
 }
@@ -40,7 +40,7 @@ void Simulator::Run()
     }
 }
 
-Simulator::QueuedEvent::QueuedEvent(SimTime time, EventPtr event)
+Simulator::QueuedEvent::QueuedEvent(double time, EventPtr event)
     : time(time), event(event) {}
 
 bool Simulator::QueuedEvent::operator<(const QueuedEvent &other) const

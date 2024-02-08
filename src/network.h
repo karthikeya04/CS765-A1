@@ -7,7 +7,6 @@
 
 #include "types.h"
 #include "macros.h"
-#include "peer.h"
 
 class Network
 {
@@ -29,16 +28,28 @@ public:
 
     struct Link
     {
-        Peer::Ptr p;
-        double latency;
+        PeerWeakPtr to;
+
+        // latency related fields
+
+        static RealUniformDistr prop_delay_distr;
+        static double propagation_delay;
+        // in bits/sec
+        double link_speed;
+        RealExpDistr queuing_delay_distr;
+
+        Link(PeerPtr p, bool is_fast);
+        // link latency (in seconds) - to be called for every message
+        double latency(int64 message_length /* in bits */);
     };
 
     Network(std::shared_ptr<NetworkParams> params,
             SimulatorPtr sim);
 
+    DISALLOW_COPY_AND_ASSIGN(Network)
+
     typedef std::vector<PeerPtr> Peers;
     typedef std::vector<Link> Links;
-    typedef std::vector<Links> Network_t;
     typedef std::vector<std::vector<int>> Graph;
 
 private:
@@ -52,13 +63,7 @@ private:
     // list of peers (i.e nodes) in the network
     Peers peers_;
 
-    // net_[u] contains all the links originated from u
-    Network_t net_;
-
     SimulatorWeakPtr sim_;
-
-private:
-    DISALLOW_COPY_AND_ASSIGN(Network)
 };
 
 #endif // _SRC_NETWORK_H_

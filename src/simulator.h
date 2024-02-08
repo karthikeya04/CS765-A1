@@ -13,8 +13,6 @@
 #include "macros.h"
 #include "types.h"
 
-using SimTime = long double;
-
 // Forward declarations
 class Event;
 
@@ -46,10 +44,12 @@ public:
 
    Simulator(std::shared_ptr<SimulationParams> params);
 
+   DISALLOW_COPY_AND_ASSIGN(Simulator)
+
    static Ptr CreatePtr(std::shared_ptr<SimulationParams> params);
 
    // Schedule an event to be processed after a delay
-   void Schedule(EventPtr event, SimTime delay = 0.0);
+   void Schedule(EventPtr event, double delay = 0.0);
 
    // Process the next scheduled event
    // returns true if there is an event to be processed
@@ -68,15 +68,15 @@ private:
    class QueuedEvent
    {
    public:
-      SimTime time;
+      double time;
       EventPtr event;
 
-      QueuedEvent(SimTime time, EventPtr event);
+      QueuedEvent(double time, EventPtr event);
 
       bool operator<(const QueuedEvent &other) const;
    };
 
-   SimTime now_ = 0.0;
+   double now_ = 0.0;
 
    // Is set when the simulation has reached its end (by the max_blocks limit)
    bool is_over_ = false;
@@ -84,9 +84,6 @@ private:
 
 public:
    static std::mt19937_64 rng;
-
-private:
-   DISALLOW_COPY_AND_ASSIGN(Simulator)
 };
 
 #endif // _SRC_SIMULATOR_H_

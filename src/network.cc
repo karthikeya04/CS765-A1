@@ -11,10 +11,45 @@
 
 Network::Network(std::shared_ptr<NetworkParams> params,
                  SimulatorPtr sim)
-    : params_(params),
-      net_(Network_t(params_->num_peers)), sim_(sim)
+    : params_(std::move(params)), sim_(sim)
 {
-    auto graph = GenerateRandomGraph(params_->num_peers);
+    const int N = params_->num_peers;
+
+    // randomly assign peers to low_cpu/slow_peer
+    std::vector<bool> is_low_cpu(N, false), is_slow_peer(N, false);
+    std::vector<int> permutation(N);
+    std::iota(all(permutation), 0);
+    random_shuffle(permutation);
+    assert(params_->num_slow_peers <= N);
+    assert(params_->num_low_cpu <= N);
+    for (int i = 0; i < params_->num_low_cpu; i++)
+        is_low_cpu[permutation[i]] = true;
+
+    random_shuffle(permutation);
+    for (int i = 0; i < params_->num_slow_peers; i++)
+        is_slow_peer[permutation[i]] = true;
+
+    // initialize peers
+    peers_.resize(N);
+    for (int i = 0; i < N; i++)
+    {
+        peers_[i] = make_shared<Peer>(i, is_low_cpu[i], is_slow_peer[i], sim);
+    }
+
+    // generate random simple graph with each peer having
+    // neighbours ranging from 3 to 6
+    auto graph = GenerateRandomGraph(N);
+
+    for(int u = 0; u < N; u++)
+    {
+        for(int v : graph[u])
+        {
+            bool is_fast = (!peers_[u]->IsSlow() && !peers_[v]->IsSlow());
+            auto link = std::make_shared<Link>(peers_[v], is_fast);
+            peers_[u]->AddLink(link);
+        }
+    }
+
 }
 
 Network::Graph Network::GenerateRandomGraph(int N)
@@ -122,4 +157,23 @@ bool Network::IsConnected(const Graph &graph)
         is_connected &= visited[i];
     }
     return is_connected;
+}
+
+// Network::Link
+
+RealUniformDistr Network::Link::prop_delay_distr(MIN_PROPAGATION_DELAY, MAX_PROPAGATION_DELAY);
+double Network::Link::propagation_delay = Network::Link::prop_delay_distr(Simulator::rng);
+
+Network::Link::Link(PeerPtr to, bool is_fast)
+    : to(to), link_speed(is_fast ? FAST_LINK_SPEED : SLOW_LINK_SPEED),
+      queuing_delay_distr(link_speed / 96000) {}
+
+double Network::Link::latency(int64 message_length)
+{
+    double queuing_delay = queuing_delay_distr(Simulator::rng);
+    return (
+        Network::Link::propagation_delay +
+        message_length / link_speed +
+        queuing_delay
+    );
 }
