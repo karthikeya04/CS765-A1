@@ -5,6 +5,7 @@
 
 #include "blockchain.h"
 #include "constants.h"
+#include "debug.h"
 #include "simulator.h"
 #include "types.h"
 
@@ -27,9 +28,9 @@ void Peer::Init() {
     if (!is_initialized_) {
         is_initialized_ = true;
         blockchain_ = std::make_shared<Blockchain>(shared_from_this());
-        ScheduleTxnGen();
         // start mining
         StartMining();
+        ScheduleTxnGen();
     }
 }
 
@@ -44,6 +45,7 @@ bool Peer::IsSlow() const { return is_slow_peer_; }
 
 void Peer::ScheduleTxnGen() {
     GET_SHARED_PTR(sim, sim_);
+    if (sim->is_over_) return;
     EventPtr event = std::make_shared<GenAndBroadcastTxn>(shared_from_this());
     double delay = txn_gen_distr_(Simulator::rng);
     sim->Schedule(event, delay);
@@ -52,16 +54,22 @@ void Peer::ScheduleTxnGen() {
 //-----------------------------------------------------------------------------
 
 void Peer::StartMining() {
-    auto block = blockchain_->CreateValidBlock();
-    EventPtr event =
-        std::make_shared<BroadcastMinedBlk>(shared_from_this(), block);
     GET_SHARED_PTR(sim, sim_);
+    if (blockchain_->Size() ==
+        sim->params_->max_blocks) {  // stop mining (END of the simulation)
+        sim->is_over_ = true;
+        return;
+    }
+    auto block = blockchain_->CreateValidBlock();
+    current_mining_event_ =
+        std::make_shared<BroadcastMinedBlk>(shared_from_this(), block);
+    EventPtr event = current_mining_event_;
+
     double I = sim->params_->avg_blks_interarrival;
     double distr_mean = I / hashing_power_;
     RealExpDistr pow_distr(1 / distr_mean);
     double pow_time = pow_distr(Simulator::rng);
     sim->Schedule(event, pow_time /* delay */);
-    current_mining_event_ = event;
 }
 
 //-----------------------------------------------------------------------------
@@ -115,31 +123,40 @@ void Peer::ReceiveAndForwardTxnOp(std::shared_ptr<Txn> txn, int sender_id) {
 
 void Peer::BroadcastMinedBlkOp(BlockPtr block) {
     GET_SHARED_PTR(sim, sim_);
-    block->arrival_time = sim->now_;
-    GET_SHARED_PTR(parent, block->parent);
-    assert(blockchain_->IsLongest(parent));
-    blockchain_->AddBlock(block);
-    for (auto link : links_) {
-        GET_SHARED_PTR(to, link->to);
-        EventPtr event = std::make_shared<ReceiveAndForwardBlk>(to, block, id_);
-        sim->Schedule(event, link->latency(block->Size()));
+    assert(blockchain_->IsLongest(block->par_block_id));
+    blockchain_->Notify(block);
+    if (blockchain_->AddBlock(block)) {
+        for (auto link : links_) {
+            GET_SHARED_PTR(to, link->to);
+            EventPtr event =
+                std::make_shared<ReceiveAndForwardBlk>(to, block, id_);
+            sim->Schedule(event, link->latency(block->Size()));
+        }
     }
+    // start mining again
+    StartMining();
 }
 
 //-----------------------------------------------------------------------------
 
 void Peer::ReceiveAndForwardBlkOp(BlockPtr block, int sender_id) {
     GET_SHARED_PTR(sim, sim_);
-    block->arrival_time = sim->now_;
     if (blockchain_->Contains(block->id)) return;
-    blockchain_->AddBlock(block);
+    blockchain_->Notify(block);
+    if (!blockchain_->AddBlock(block)) {  // invalid block
+        return;
+    }
+    // abort the current mining event if the longest chain has changed
+    if (!blockchain_->IsLongest(current_mining_event_->GetParentId())) {
+        current_mining_event_->Abort();
+        StartMining();
+    }
     for (auto link : links_) {
         GET_SHARED_PTR(to, link->to);
         if (to->id_ == sender_id) continue;
         EventPtr event = std::make_shared<ReceiveAndForwardBlk>(to, block, id_);
         sim->Schedule(event, link->latency(block->Size()));
     }
-    // what if parent block hasn't arrived yet??
 }
 
 //-----------------------------------------------------------------------------

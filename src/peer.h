@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "blockchain.h"
+#include "events.h"
 #include "network.h"
 #include "types.h"
 
@@ -26,6 +27,7 @@ class Peer : public std::enable_shared_from_this<Peer> {
     friend class BroadcastMinedBlk;
     friend class ReceiveAndForwardBlk;
     friend class Blockchain;
+    friend class Network;
 
     // called once the peer is set up in the network
     void Init();
@@ -54,7 +56,7 @@ class Peer : public std::enable_shared_from_this<Peer> {
     int64 balance_;
     hash_table<int64, std::shared_ptr<Txn>> received_txns_;
     BlockchainPtr blockchain_;
-    EventPtr current_mining_event_;
+    std::shared_ptr<BroadcastMinedBlk> current_mining_event_;
     // simulator handler to schedule events
     SimulatorWeakPtr sim_;
     // Network handler

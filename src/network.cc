@@ -7,15 +7,20 @@
 
 #include "constants.h"
 #include "debug.h"
+#include "peer.h"
 #include "simulator.h"
 #include "types.h"
 
 //-----------------------------------------------------------------------------
 
 Network::Network(std::shared_ptr<NetworkParams> params, SimulatorPtr sim)
-    : params_(std::move(params)), sim_(sim) {
-    const int N = params_->num_peers;
+    : params_(std::move(params)), sim_(sim) {}
 
+//-----------------------------------------------------------------------------
+
+void Network::Init() {
+    const int N = params_->num_peers;
+    GET_SHARED_PTR(sim, sim_);
     // randomly assign peers to
     // low_cpu/slow_peer
     std::vector<bool> is_low_cpu(N, false), is_slow_peer(N, false);
@@ -171,6 +176,15 @@ double Network::Link::latency(int64 message_length) {
     double queuing_delay = queuing_delay_distr(Simulator::rng);
     return (Network::Link::propagation_delay + message_length / link_speed +
             queuing_delay);
+}
+
+//-----------------------------------------------------------------------------
+
+void Network::End() {
+    // blockchains at all the peers must be same (maybe do a check?)
+    auto blockchain = peers_[0]->blockchain_;
+    blockchain->ExportToFile();
+    // TODO: export network and blockchain data to files for analysis
 }
 
 //-----------------------------------------------------------------------------

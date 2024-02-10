@@ -39,8 +39,10 @@ class Network {
     };
 
     Network(std::shared_ptr<NetworkParams> params, SimulatorPtr sim);
-
     DISALLOW_COPY_AND_ASSIGN(Network)
+
+    void Init();
+    void End();
 
     typedef std::vector<PeerPtr> Peers;
     typedef std::vector<Link> Links;

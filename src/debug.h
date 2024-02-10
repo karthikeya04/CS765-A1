@@ -1,26 +1,27 @@
-#ifdef DEBUG_MODE
-#ifndef DEBUG_H
-#define DEBUG_H
+// debug.h
+
+#ifndef _SRC_DEBUG_H_
+#define _SRC_DEBUG_H_
 
 #include <bits/stdc++.h>
 using namespace std;
+
+#include "types.h"
+
+#ifdef DEBUG_MODE
 
 #define debug(...) \
     cerr << endl;  \
     cerr << "[ " << #__VA_ARGS__ << " ]:", debug_out(__VA_ARGS__);
 
-void __print(int x) { cerr << x; }
-void __print(size_t x) { cerr << x; }
-#ifdef LEETCODE
-void __print(long long x) { cout << x; }
-#endif
-void __print(float x) { cerr << x; }
-void __print(double x) { cerr << x; }
-void __print(long double x) { cerr << x; }
-void __print(char x) { cerr << '\'' << x << '\''; }
-void __print(const char *x) { cerr << '\"' << x << '\"'; }
-void __print(const string &x) { cerr << '\"' << x << '\"'; }
-void __print(bool x) { cerr << (x ? "true" : "false"); }
+void __print(int x);
+void __print(int64 x);
+void __print(size_t x);
+void __print(double x);
+void __print(char x);
+void __print(const char *x);
+void __print(const string &x);
+void __print(bool x);
 
 template <class T>
 void __print(vector<T>);
@@ -95,7 +96,7 @@ void __print(unordered_map<T, V, H> v) {
     cerr << "]";
 }
 
-void debug_out() { cerr << endl; }
+void debug_out();
 template <typename Head, typename... Tail>
 void debug_out(Head H, Tail... T) {
     __print(H);
@@ -117,8 +118,11 @@ void debug_graph(const T &g) {
     std::cout << "-------graph end---------" << std::endl;
 }
 
-#endif
 #else
+
 #define debug(...) ;
 #define debug_graph(...) ;
-#endif
+
+#endif  // DEBUG_MODE
+
+#endif  // _SRC_DEBUG_H_

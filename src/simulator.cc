@@ -1,6 +1,8 @@
 
 #include "simulator.h"
 
+#include "debug.h"
+
 std::mt19937_64 Simulator::rng(
     std::chrono::steady_clock::now().time_since_epoch().count());
 
@@ -42,19 +44,20 @@ void Simulator::Run() {
 
 //-----------------------------------------------------------------------------
 
-void Simulator::ExportData() {}
+void Simulator::End() { network_->End(); }
 
 //-----------------------------------------------------------------------------
 
 void Simulator::Init_Network() {
     network_ =
         std::make_shared<Network>(params_->network_params, shared_from_this());
+    network_->Init();
 }
 
 //-----------------------------------------------------------------------------
 
 double Simulator::GetTtx() { return params_->Ttx; }
-
+double Simulator::Now() { return now_; }
 //-----------------------------------------------------------------------------
 
 Simulator::QueuedEvent::QueuedEvent(double time, EventPtr event)

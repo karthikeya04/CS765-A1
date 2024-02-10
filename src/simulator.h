@@ -49,11 +49,12 @@ class Simulator : public std::enable_shared_from_this<Simulator> {
     // Run the simulation until no scheduled events are left.
     void Run();
 
-    void ExportData();
+    void End();
 
     void Init_Network();
 
     double GetTtx();
+    double Now();
 
     friend class Peer;
 

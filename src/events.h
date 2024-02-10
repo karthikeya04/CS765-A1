@@ -6,7 +6,6 @@
 #include <memory>
 
 #include "blockchain.h"
-#include "peer.h"
 #include "simulator.h"
 #include "types.h"
 
@@ -57,6 +56,7 @@ class BroadcastMinedBlk : public Event {
    public:
     BroadcastMinedBlk(PeerPtr owner, std::shared_ptr<Block> blk);
     void Process() override;
+    int GetParentId();
 
    private:
     std::shared_ptr<Block> block_;

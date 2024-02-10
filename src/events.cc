@@ -1,6 +1,8 @@
 
 #include "events.h"
 
+#include "peer.h"
+
 Event::Event(PeerPtr owner) : owner_(owner) {}
 void Event::Abort() { state = State::Aborted; }
 bool Event::isAborted() { return (state == State::Aborted); }
@@ -42,6 +44,8 @@ void BroadcastMinedBlk::Process() {
     GET_SHARED_PTR(owner, owner_);
     owner->BroadcastMinedBlkOp(block_);
 }
+
+int BroadcastMinedBlk::GetParentId() { return block_->par_block_id; }
 
 //-----------------------------------------------------------------------------
 
