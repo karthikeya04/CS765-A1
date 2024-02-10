@@ -33,8 +33,7 @@ template <class T, class V>
 void __print(map<T, V>);
 
 template <typename T, typename V>
-void __print(const pair<T, V> &x)
-{
+void __print(const pair<T, V> &x) {
     cerr << '{';
     __print(x.first);
     cerr << ',';
@@ -42,66 +41,54 @@ void __print(const pair<T, V> &x)
     cerr << '}';
 }
 template <class T>
-void __print(deque<T> v)
-{
+void __print(deque<T> v) {
     cerr << "[ ";
-    for (T i : v)
-    {
+    for (T i : v) {
         __print(i);
         cerr << " ";
     }
     cerr << "]";
 }
 template <class T>
-void __print(vector<T> v)
-{
+void __print(vector<T> v) {
     cerr << "[ ";
-    for (T i : v)
-    {
+    for (T i : v) {
         __print(i);
         cerr << " ";
     }
     cerr << "]\n";
 }
 template <class T>
-void __print(set<T> v)
-{
+void __print(set<T> v) {
     cerr << " [ ";
-    for (T i : v)
-    {
+    for (T i : v) {
         __print(i);
         cerr << " ";
     }
     cerr << "]";
 }
 template <class T>
-void __print(multiset<T> v)
-{
+void __print(multiset<T> v) {
     cerr << " [ ";
-    for (T i : v)
-    {
+    for (T i : v) {
         __print(i);
         cerr << " ";
     }
     cerr << "]";
 }
 template <class T, class V>
-void __print(map<T, V> v)
-{
+void __print(map<T, V> v) {
     cerr << " [ ";
-    for (auto i : v)
-    {
+    for (auto i : v) {
         __print(i);
         cerr << " ";
     }
     cerr << "]";
 }
 template <class T, class V, typename H>
-void __print(unordered_map<T, V, H> v)
-{
+void __print(unordered_map<T, V, H> v) {
     cerr << " [ ";
-    for (auto i : v)
-    {
+    for (auto i : v) {
         __print(i);
         cerr << " ";
     }
@@ -110,24 +97,19 @@ void __print(unordered_map<T, V, H> v)
 
 void debug_out() { cerr << endl; }
 template <typename Head, typename... Tail>
-void debug_out(Head H, Tail... T)
-{
+void debug_out(Head H, Tail... T) {
     __print(H);
     cerr << " ";
     debug_out(T...);
 }
 template <typename T>
-void debug_graph(const T &g)
-{
+void debug_graph(const T &g) {
     map<pair<int, int>, bool> m;
     std::cout << "-------graph begin--------" << std::endl;
-    for (int i = 0; i < (int)g.size(); i++)
-    {
-        for (auto j : g[i])
-        {
+    for (int i = 0; i < (int)g.size(); i++) {
+        for (auto j : g[i]) {
             int mn = min(i, j), mx = max(i, j);
-            if (m[{mn, mx}])
-                continue;
+            if (m[{mn, mx}]) continue;
             m[{mn, mx}] = 1;
             std::cout << i << " " << j << std::endl;
         }

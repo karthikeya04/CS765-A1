@@ -2,83 +2,76 @@
 #ifndef _SRC_EVENTS_H_
 #define _SRC_EVENTS_H_
 
-#include <memory>
 #include <functional>
+#include <memory>
 
-#include "types.h"
-#include "simulator.h"
-#include "peer.h"
 #include "blockchain.h"
+#include "peer.h"
+#include "simulator.h"
+#include "types.h"
 
 // Abstract Event class
-class Event
-{
-public:
-   typedef std::shared_ptr<Event> Ptr;
+class Event {
+   public:
+    typedef std::shared_ptr<Event> Ptr;
 
-   enum class State
-   {
-      // Event has not been triggered or aborted.
-      Pending,
-      // Event has been triggered.
-      Triggered,
-      // Event has been triggered and processed.
-      Processed,
-      // Event has been aborted.
-      Aborted
-   };
+    enum class State {
+        // Event has not been triggered or aborted.
+        Pending,
+        // Event has been aborted.
+        Aborted
+    };
 
-   // enum class Type {
-   //     GenAndBroadcastTxn,
-   //     ReceiveAndForwardTxn,
-   //     BroadcastMinedBlk,
-   //     ReceiveAndForwardBlk
-   // };
+    Event(PeerPtr peer);
+    virtual ~Event() {}
 
-   Event(PeerPtr peer);
+    virtual void Process() = 0;
+    void Abort();
+    bool isAborted();
 
-   virtual ~Event() {}
-
-   virtual void Process() = 0;
-
-protected:
-   PeerWeakPtr owner_;
-   State state = State::Pending;
-   // Type type;
+   protected:
+    // peer at which the event is supposed to take place
+    PeerWeakPtr owner_;
+    State state = State::Pending;
 };
 
-class GenAndBroadcastTxn : public Event
-{
-public:
-   GenAndBroadcastTxn(PeerPtr peer);
-   void Process() override;
+class GenAndBroadcastTxn : public Event {
+   public:
+    GenAndBroadcastTxn(PeerPtr owner);
+    void Process() override;
 };
 
-class ReceiveAndForwardTxn : public Event
-{
-public:
-   ReceiveAndForwardTxn(PeerPtr peer, std::shared_ptr<Blockchain::Txn> txn);
-   void Process() override;
+class ReceiveAndForwardTxn : public Event {
+   public:
+    ReceiveAndForwardTxn(PeerPtr owner, std::shared_ptr<Blockchain::Txn> txn,
+                         int sender_id);
+    void Process() override;
 
-private:
-   std::shared_ptr<Blockchain::Txn> txn_;
+   private:
+    std::shared_ptr<Blockchain::Txn> txn_;
+    // peer id
+    int sender_id_;
 };
 
-class BroadcastMinedBlk : public Event
-{
-public:
-   BroadcastMinedBlk(PeerPtr peer);
-   void Process() override;
+class BroadcastMinedBlk : public Event {
+   public:
+    BroadcastMinedBlk(PeerPtr owner, std::shared_ptr<Block> blk);
+    void Process() override;
+
+   private:
+    std::shared_ptr<Block> block_;
 };
 
-class ReceiveAndForwardBlk : public Event
-{
-public:
-   ReceiveAndForwardBlk(PeerPtr peer, std::shared_ptr<Blockchain::Block> blk);
-   void Process() override;
+class ReceiveAndForwardBlk : public Event {
+   public:
+    ReceiveAndForwardBlk(PeerPtr owner, std::shared_ptr<Block> blk,
+                         int sender_id);
+    void Process() override;
 
-private:
-   std::shared_ptr<Blockchain::Block> block_;
+   private:
+    std::shared_ptr<Blockchain::Block> block_;
+    // peer id
+    int sender_id_;
 };
 
-#endif // _SRC_EVENTS_H_
+#endif  // _SRC_EVENTS_H_

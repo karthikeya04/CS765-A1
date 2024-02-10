@@ -5,17 +5,14 @@
 #include <memory>
 #include <vector>
 
-#include "types.h"
 #include "macros.h"
+#include "types.h"
 
-class Network
-{
-public:
+class Network {
+   public:
     typedef std::shared_ptr<Network> Ptr;
 
-    struct NetworkParams
-    {
-
+    struct NetworkParams {
         // No of. peers in the network
         int num_peers;
 
@@ -26,25 +23,22 @@ public:
         int num_low_cpu;
     };
 
-    struct Link
-    {
+    struct Link {
         PeerWeakPtr to;
 
         // latency related fields
-
         static RealUniformDistr prop_delay_distr;
         static double propagation_delay;
         // in bits/sec
         double link_speed;
-        RealExpDistr queuing_delay_distr;
-
         Link(PeerPtr p, bool is_fast);
-        // link latency (in seconds) - to be called for every message
+        // link latency (in seconds) - to be called for every message that's put
+        // on the link
+        // @param message_length: in bits
         double latency(int64 message_length /* in bits */);
     };
 
-    Network(std::shared_ptr<NetworkParams> params,
-            SimulatorPtr sim);
+    Network(std::shared_ptr<NetworkParams> params, SimulatorPtr sim);
 
     DISALLOW_COPY_AND_ASSIGN(Network)
 
@@ -52,12 +46,13 @@ public:
     typedef std::vector<Link> Links;
     typedef std::vector<std::vector<int>> Graph;
 
-private:
+    friend class Peer;
+
+   private:
     Graph GenerateRandomGraph(int N);
     bool IsConnected(const Graph &graph);
-    void AddEventsAtPeer(PeerPtr peer);
 
-private:
+   private:
     std::shared_ptr<NetworkParams> params_;
 
     // list of peers (i.e nodes) in the network
@@ -66,4 +61,4 @@ private:
     SimulatorWeakPtr sim_;
 };
 
-#endif // _SRC_NETWORK_H_
+#endif  // _SRC_NETWORK_H_
