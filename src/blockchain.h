@@ -93,7 +93,7 @@ class Blockchain {
     BlockPtr CreateValidBlock();
 
     // return true if the longest chain in the blockchain ends at the given
-    // block. Longest chain ties are broken using arrival_time
+    // block. Longest chain ties are broken using chain_gen_time
     bool IsLongest(int block_id) const;
 
     // returns true if the blockchain has recevied a block with the given id
@@ -106,8 +106,7 @@ class Blockchain {
     // returns false if the block is invalid for sure
     bool AddBlock(BlockPtr block);
 
-    // Returns false if the block is invalid or its parent is not present in the
-    // blockchain
+    // Returns false if the block is invalid 
     bool IsValid(BlockPtr block);
 
     // Peer is supposed to call this to notify the blockchain about the newly

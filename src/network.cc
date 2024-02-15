@@ -2,7 +2,7 @@
 #include "network.h"
 
 #include <algorithm>
-#include <boost/graph/random.hpp>
+// #include <boost/graph/random.hpp>
 #include <random>
 
 #include "constants.h"
@@ -53,7 +53,10 @@ void Network::Init() {
     // generate random simple graph with
     // each peer having neighbours
     // ranging from 3 to 6
-    auto graph = GenerateRandomGraph(N);
+    Graph graph;
+    do{
+        graph = GenerateRandomGraph(N);
+    } while (!IsConnected(graph));
 
     for (int u = 0; u < N; u++) {
         for (int v : graph[u]) {
@@ -181,9 +184,11 @@ double Network::Link::latency(int64 message_length) {
 //-----------------------------------------------------------------------------
 
 void Network::End() {
-    // blockchains at all the peers must be same (maybe do a check?)
-    auto blockchain = peers_[0]->blockchain_;
-    blockchain->ExportToFile();
+    // problem statement requires that we export the blockchains of all peers
+    for(auto& peer : peers_){
+        auto blockchain = peer->blockchain_;
+        blockchain->ExportToFile();
+    }
     // TODO: export network and blockchain data to files for analysis
 }
 
