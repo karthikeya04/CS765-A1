@@ -55,7 +55,7 @@ void Peer::ScheduleTxnGen() {
 
 void Peer::StartMining() {
     GET_SHARED_PTR(sim, sim_);
-    if (blockchain_->Size() ==
+    if (blockchain_->Size() >= // received invalid blocks, even though not added to a chain, still increase blockchain_.Size() without triggering the check for if we want to abort current mining process. this is postponed to the arrival of next valid block by which Size() has increased by 2 and is now 1 more than max_blocks
         sim->params_->max_blocks) {  // stop mining (END of the simulation)
         sim->is_over_ = true;
         return;

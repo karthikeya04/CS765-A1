@@ -54,20 +54,28 @@ BlockPtr Blockchain::CreateValidBlock() {
         assert(all_blocks_.find(current->par_block_id) != all_blocks_.end());
         current = all_blocks_[current->par_block_id];
     }
-    for (auto tt : ok_txns) {
-        auto txn = tt.second;
-        txns.push_back(*txn);
-        if (block->Size() > MAX_BLK_SIZE) {
-            txns.pop_back();
-            break;
-        }
-    }
 
     // everytime you start mining, it is an oppurtunity to update balance
     // of the owner
     auto metadata = blocks_metadata_[par_block_id];
     assert((int)metadata->balances.size() >= owner->id_);
     owner->balance_ = metadata->balances[owner->id_];
+
+    auto would_be_balances = metadata->balances;
+    for (auto tt : ok_txns) {
+        auto txn = tt.second;
+        if (
+            txn->payer_id != -1 && 
+            would_be_balances[txn->payer_id] < txn->amount
+        ) continue;
+        would_be_balances[txn->payer_id] -= txn->amount;
+        would_be_balances[txn->payee_id] += txn->amount;
+        txns.push_back(*txn);
+        if (block->Size() > MAX_BLK_SIZE) {
+            txns.pop_back();
+            break;
+        }
+    }
 
     return block;
 }
@@ -141,11 +149,11 @@ bool Blockchain::AddBlock(BlockPtr block) {
         leaf_blocks_.erase(par_block_id);
     }
     // add current block to leaf_blocks_
-    leaf_blocks_.insert(block->id);
     BlockAddedToAChain(block);
+    leaf_blocks_.insert(block->id);
     // add other relevant blocks to the chain (if present)
     for (auto ch_block : blocks_buffer_[block->id]) {
-        assert(AddBlock(ch_block));
+        AddBlock(ch_block);
     }
     return true;
 }
@@ -171,6 +179,31 @@ int Blockchain::Size() { return all_blocks_.size(); }
 
 void Blockchain::ExportToFile() {
     // TODO
+    GET_SHARED_PTR(owner, owner_)
+    string fname = "blockchains/" + std::to_string(owner->id_) + ".dot"; 
+    ofstream file(fname);
+    file << "digraph D { node [ordering=out] rankdir=\"LR\";\n";
+    
+    auto latest_block_id = *leaf_blocks_.begin();
+    assert(all_blocks_.find(latest_block_id) != all_blocks_.end());
+    auto current = all_blocks_[latest_block_id];
+    while (current->id != 0) {
+        file << current->id << " [fillcolor=lightgreen, style=filled]\n";
+        assert(all_blocks_.find(current->par_block_id) != all_blocks_.end());
+        current = all_blocks_[current->par_block_id];
+    }
+    file << "0 [fillcolor=lightgreen, style=filled]\n";
+
+    for(auto& p : all_blocks_){
+        auto& block = p.second;
+        if(block->par_block_id == -1) continue;
+        if(!blocks_metadata_[block->id]->is_in_a_chain) continue;
+        file << block->id << " [shape=box]\n";
+        file << block->par_block_id << " -> " << block->id << "\n";
+    }
+
+    file << "\n}";
+    file.close();
 }
 
 //-----------------------------------------------------------------------------

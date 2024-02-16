@@ -10,7 +10,7 @@ int main() {
     network_params->num_low_cpu = 21;
     auto params = std::make_shared<Simulator::SimulationParams>();
     params->network_params = network_params;
-    params->avg_blks_interarrival = 600;
+    params->avg_blks_interarrival = 0.1;
     params->max_blocks = 100;
     params->Ttx = 200;
     auto sim = Simulator::CreatePtr(params);
