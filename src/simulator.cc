@@ -2,9 +2,15 @@
 #include "simulator.h"
 
 #include "debug.h"
+#include "network.h"
 
 std::mt19937_64 Simulator::rng(
     std::chrono::steady_clock::now().time_since_epoch().count());
+
+RealUniformDistr Network::Link::prop_delay_distr(MIN_PROPAGATION_DELAY,
+                                                 MAX_PROPAGATION_DELAY);
+double Network::Link::propagation_delay =
+    Network::Link::prop_delay_distr(Simulator::rng);
 
 //-----------------------------------------------------------------------------
 

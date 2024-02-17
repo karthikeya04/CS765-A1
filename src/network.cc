@@ -54,7 +54,7 @@ void Network::Init() {
     // each peer having neighbours
     // ranging from 3 to 6
     Graph graph;
-    do{
+    do {
         graph = GenerateRandomGraph(N);
     } while (!IsConnected(graph));
 
@@ -166,11 +166,6 @@ bool Network::IsConnected(const Graph &graph) {
 
 // Network::Link
 
-RealUniformDistr Network::Link::prop_delay_distr(MIN_PROPAGATION_DELAY,
-                                                 MAX_PROPAGATION_DELAY);
-double Network::Link::propagation_delay =
-    Network::Link::prop_delay_distr(Simulator::rng);
-
 Network::Link::Link(PeerPtr to, bool is_fast)
     : to(to), link_speed(is_fast ? FAST_LINK_SPEED : SLOW_LINK_SPEED) {}
 
@@ -185,7 +180,7 @@ double Network::Link::latency(int64 message_length) {
 
 void Network::End() {
     // problem statement requires that we export the blockchains of all peers
-    for(auto& peer : peers_){
+    for (auto &peer : peers_) {
         auto blockchain = peer->blockchain_;
         blockchain->ExportToFile();
     }
