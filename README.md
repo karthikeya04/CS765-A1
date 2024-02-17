@@ -6,7 +6,7 @@ Discrete-event Simulator for a P2P cryptocurrency network
 To install the required packages, run the following commands:
 ```sh
 sudo apt-get install libjsoncpp-dev
-sudo apt-get install graphviz-dev
+sudo apt install graphviz
 ```
 
 ## Compilation and Execution
