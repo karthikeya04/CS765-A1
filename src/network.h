@@ -21,6 +21,10 @@ class Network {
 
         // No of. peers with low processing power
         int num_low_cpu;
+
+        // dij is randomly chosen from an exponential distribution
+        // with mean (T_dij kbits)/c_ij
+        double T_dij;
     };
 
     struct Link {
@@ -29,6 +33,7 @@ class Network {
         // latency related fields
         static RealUniformDistr prop_delay_distr;
         static double propagation_delay;
+        static double T_dij;
         // in bits/sec
         double link_speed;
         Link(PeerPtr p, bool is_fast);

@@ -1,0 +1,9 @@
+{       
+    "num_peers": 30,
+    "num_slow_peers": 17,
+    "num_low_cpu": 21,
+    "Tdij": 96,
+    "avg_blks_interarrival": 0.1,
+    "max_blocks": 100,
+    "Ttx": 200
+}

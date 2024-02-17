@@ -21,6 +21,7 @@ Network::Network(std::shared_ptr<NetworkParams> params, SimulatorPtr sim)
 void Network::Init() {
     const int N = params_->num_peers;
     GET_SHARED_PTR(sim, sim_);
+    Link::T_dij = params_->T_dij * 1000;
     // randomly assign peers to
     // low_cpu/slow_peer
     std::vector<bool> is_low_cpu(N, false), is_slow_peer(N, false);
@@ -169,8 +170,10 @@ bool Network::IsConnected(const Graph &graph) {
 Network::Link::Link(PeerPtr to, bool is_fast)
     : to(to), link_speed(is_fast ? FAST_LINK_SPEED : SLOW_LINK_SPEED) {}
 
+double Network::Link::T_dij;
+
 double Network::Link::latency(int64 message_length) {
-    RealExpDistr queuing_delay_distr(link_speed / 96000);
+    RealExpDistr queuing_delay_distr(link_speed / T_dij);
     double queuing_delay = queuing_delay_distr(Simulator::rng);
     return (Network::Link::propagation_delay + message_length / link_speed +
             queuing_delay);
