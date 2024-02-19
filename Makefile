@@ -20,7 +20,6 @@ run: all
 	mkdir -p $(OUTDIR)
 	./$(EXECUTABLE)
 	dot -Tpng $(OUTDIR)/*.dot -O
-	rm -f $(OUTDIR)/*.dot
 
 clean:
 	rm -f $(SRCDIR)/*.o $(EXECUTABLE)
