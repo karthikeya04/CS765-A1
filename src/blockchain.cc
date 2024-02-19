@@ -198,7 +198,9 @@ void Blockchain::ExportToFile() {
         auto& block = p.second;
         if(block->par_block_id == -1) continue;
         if(!blocks_metadata_[block->id]->is_in_a_chain) continue;
-        file << block->id << " [shape=box]\n";
+        file << block->id << " [shape=box, label=\"" << block->id 
+                        << "\n arrived at\n" << 
+                        blocks_metadata_[block->id]->arrival_time << "\"]\n";
         file << block->par_block_id << " -> " << block->id << "\n";
     }
 
