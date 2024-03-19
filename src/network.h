@@ -22,6 +22,10 @@ class Network {
         // No of. peers with low processing power
         int num_low_cpu;
 
+        // fracition of hashing power with each selfish miner
+        double hashPower_self1;
+        double hashPower_self2;
+        
         // dij is randomly chosen from an exponential distribution
         // with mean (T_dij kbits)/c_ij
         double T_dij;
@@ -54,6 +58,7 @@ class Network {
     typedef std::vector<std::vector<int>> Graph;
 
     friend class Peer;
+    friend class SelfishPeer;
 
    private:
     Graph GenerateRandomGraph(int N);

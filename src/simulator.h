@@ -57,6 +57,7 @@ class Simulator : public std::enable_shared_from_this<Simulator> {
     double Now();
 
     friend class Peer;
+    friend class SelfishPeer;
 
     // Simulator environment
    private:

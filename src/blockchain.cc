@@ -82,6 +82,13 @@ BlockPtr Blockchain::CreateValidBlock() {
 
 //-----------------------------------------------------------------------------
 
+int Blockchain::GetLVC() {
+    assert(!leaf_blocks_.empty());
+    return *leaf_blocks_.begin();
+}
+
+//-----------------------------------------------------------------------------
+
 bool Blockchain::IsLongest(int block_id) const {
     auto it = leaf_blocks_.begin();
     return *it == block_id;

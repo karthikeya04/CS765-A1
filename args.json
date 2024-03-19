@@ -1,9 +1,11 @@
 {       
-    "num_peers": 30,
-    "num_slow_peers": 17,
-    "num_low_cpu": 21,
+    "num_peers": 100,
+    "num_slow_peers": 49,
+    "hashing_power_selfish_1": 0.3,
+    "hashing_power_selfish_2": 0.3,
+    "num_low_cpu": 0,
     "Tdij": 96,
-    "avg_blks_interarrival": 0.1,
+    "avg_blks_interarrival": 1,
     "max_blocks": 100,
-    "Ttx": 200
+    "Ttx": 10
 }

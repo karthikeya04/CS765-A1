@@ -24,12 +24,12 @@ void Network::Init() {
     Link::T_dij = params_->T_dij * 1000;
     // randomly assign peers to
     // low_cpu/slow_peer
-    std::vector<bool> is_low_cpu(N, false), is_slow_peer(N, false);
-    std::vector<int> permutation(N);
+    std::vector<bool> is_low_cpu(N-2, false), is_slow_peer(N-2, false);
+    std::vector<int> permutation(N-2);
     std::iota(ALL(permutation), 0);
     random_shuffle(permutation);
-    assert(params_->num_slow_peers <= N);
-    assert(params_->num_low_cpu <= N);
+    assert(params_->num_slow_peers <= N-2);
+    assert(params_->num_low_cpu <= N-2);
     for (int i = 0; i < params_->num_low_cpu; i++) {
         is_low_cpu[permutation[i]] = true;
     }
@@ -38,18 +38,23 @@ void Network::Init() {
         is_slow_peer[permutation[i]] = true;
     }
     auto num_low_cpu = params_->num_low_cpu;
-    auto num_high_cpu = N - num_low_cpu;
-    double slow_peer_hashing_power = 1.0 / (10 * num_high_cpu + num_low_cpu);
+    auto num_high_cpu = N-2 - num_low_cpu;
+    auto zeta1 = params_->hashPower_self1;
+    auto zeta2 = params_->hashPower_self1;
+    double slow_peer_hashing_power = 
+        (1.0 - zeta1 - zeta2) / (10 * num_high_cpu + num_low_cpu);
 
     // initialize peers
     peers_.resize(N);
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < N-2; i++) {
         double hashing_power = slow_peer_hashing_power;
         if (!is_low_cpu[i]) hashing_power *= 10;
         peers_[i] =
             make_shared<Peer>(i + 1 /* IDs start from 1*/, is_low_cpu[i],
                               is_slow_peer[i], hashing_power, sim);
     }
+    peers_[N-2] = make_shared<SelfishPeer>(N-1, 0, 0, zeta1, sim);
+    peers_[N-1] = make_shared<SelfishPeer>(N  , 0, 0, zeta2, sim);
 
     // generate random simple graph with
     // each peer having neighbours

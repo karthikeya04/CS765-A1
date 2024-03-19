@@ -55,7 +55,7 @@ void Peer::ScheduleTxnGen() {
 
 void Peer::StartMining() {
     GET_SHARED_PTR(sim, sim_);
-    if (blockchain_->Size() >= // received invalid blocks, even though not added to a chain, still increase blockchain_.Size() without triggering the check for if we want to abort current mining process. this is postponed to the arrival of next valid block by which Size() has increased by 2 and is now 1 more than max_blocks
+    if (blockchain_->Size() >= 
         sim->params_->max_blocks) {  // stop mining (END of the simulation)
         sim->is_over_ = true;
         return;
@@ -121,9 +121,8 @@ void Peer::ReceiveAndForwardTxnOp(std::shared_ptr<Txn> txn, int sender_id) {
 
 //-----------------------------------------------------------------------------
 
-void Peer::BroadcastMinedBlkOp(BlockPtr block) {
+void Peer::BroadcastToNeighbours(BlockPtr block){
     GET_SHARED_PTR(sim, sim_);
-    assert(blockchain_->IsLongest(block->par_block_id));
     blockchain_->Notify(block);
     if (blockchain_->AddBlock(block)) {
         for (auto link : links_) {
@@ -133,6 +132,11 @@ void Peer::BroadcastMinedBlkOp(BlockPtr block) {
             sim->Schedule(event, link->latency(block->Size()));
         }
     }
+}
+
+void Peer::BroadcastMinedBlkOp(BlockPtr block) {
+    assert(blockchain_->IsLongest(block->par_block_id));
+    BroadcastToNeighbours(block);
     // start mining again
     StartMining();
 }
@@ -164,6 +168,92 @@ void Peer::ReceiveAndForwardBlkOp(BlockPtr block, int sender_id) {
 int Peer::GetNumPeersInNetwork() {
     GET_SHARED_PTR(sim, sim_);
     return sim->params_->network_params->num_peers;
+}
+
+//-----------------------------------------------------------------------------
+
+void SelfishPeer::StartMining() {
+    GET_SHARED_PTR(sim, sim_);
+    if (blockchain_->Size() >= 
+        sim->params_->max_blocks) {  // stop mining (END of the simulation)
+        sim->is_over_ = true;
+        return;
+    }
+    
+    int par_block_id;
+    if(state_ == 0){ // secret_chain.empty()
+        par_block_id = blockchain_->GetLVC();
+    }else{
+        assert(!secret_chain_.empty());
+        par_block_id = secret_chain_.back()->id;
+    }
+    // lightweight blocks with no (non-coinbase) txns travel faster
+    auto block = std::make_shared<Block>(par_block_id);
+    block->txns.emplace_back(-1, id_, MINING_FEE);
+    
+    current_mining_event_ =
+        std::make_shared<BroadcastMinedBlk>(shared_from_this(), block);
+    EventPtr event = current_mining_event_;
+
+    double I = sim->params_->avg_blks_interarrival;
+    double distr_mean = I / hashing_power_;
+    RealExpDistr pow_distr(1 / distr_mean);
+    double pow_time = pow_distr(Simulator::rng);
+    sim->Schedule(event, pow_time /* delay */);
+}
+
+//-----------------------------------------------------------------------------
+
+void SelfishPeer::BroadcastMinedBlkOp(BlockPtr block) {
+    if(state_ == -1){
+        BroadcastToNeighbours(block);
+        state_ = 0;
+        secret_chain_.clear();
+    }else{
+        secret_chain_.push_back(block);
+        ++ state_;   
+    }
+    StartMining();
+}
+
+//-----------------------------------------------------------------------------
+
+void SelfishPeer::ReceiveAndForwardBlkOp(BlockPtr block, int /*sender_id*/) {
+    GET_SHARED_PTR(sim, sim_);
+    if (blockchain_->Contains(block->id)) return;
+    blockchain_->Notify(block);
+    if (!blockchain_->AddBlock(block)) {  // invalid block
+        return;
+    }
+    
+    if (!blockchain_->IsLongest(block->id)) return;
+
+    switch (state_){
+        case -1:
+        case 0:
+            state_ = 0;
+            secret_chain_.clear();
+            current_mining_event_->Abort();
+            StartMining();
+            break;
+        case 1:
+            state_ = -1;
+            BroadcastToNeighbours(secret_chain_.back());
+            break;
+        case 2:
+            state_ = 0;
+            for(auto blk : secret_chain_){
+                BroadcastToNeighbours(blk);
+            }
+            secret_chain_.clear();
+            current_mining_event_->Abort();
+            StartMining();
+            break;
+        default:
+            -- state_;
+            BroadcastToNeighbours(secret_chain_.front());
+            secret_chain_.pop_front();
+    }
 }
 
 //-----------------------------------------------------------------------------

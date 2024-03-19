@@ -35,18 +35,19 @@ class Peer : public std::enable_shared_from_this<Peer> {
     bool IsLowCpu() const;
     bool IsSlow() const;
 
-   private:
+   protected:
+    void BroadcastToNeighbours(std::shared_ptr<Block> blk); // helper fn
     // Event Ops
     void GenAndBroadcastTxnOp();
     void ReceiveAndForwardTxnOp(std::shared_ptr<Txn> txn, int sender_id);
-    void BroadcastMinedBlkOp(std::shared_ptr<Block> blk);
-    void ReceiveAndForwardBlkOp(std::shared_ptr<Block> blk, int sender_id);
+    virtual void BroadcastMinedBlkOp(std::shared_ptr<Block> blk);
+    virtual void ReceiveAndForwardBlkOp(std::shared_ptr<Block> blk, int sender_id);
 
     void ScheduleTxnGen();
-    void StartMining();
+    virtual void StartMining();
     int GetNumPeersInNetwork();
 
-   private:
+   protected:
     int id_;
     Links links_;
     bool is_low_cpu_;
@@ -62,6 +63,26 @@ class Peer : public std::enable_shared_from_this<Peer> {
     // Network handler
     NetworkWeakPtr net_;
     RealExpDistr txn_gen_distr_;
+};
+
+class SelfishPeer : public Peer {
+   public: 
+    using Peer::Peer;
+    friend class GenAndBroadcastTxn;
+    friend class ReceiveAndForwardTxn;
+    friend class BroadcastMinedBlk;
+    friend class ReceiveAndForwardBlk;
+    friend class Blockchain;
+    friend class Network;
+
+   private: 
+    void BroadcastMinedBlkOp(std::shared_ptr<Block> blk);
+    void ReceiveAndForwardBlkOp(std::shared_ptr<Block> blk, int sender_id);
+    void StartMining();
+    
+   private: 
+    int state_ = 0; // (0' is -1)
+    deque<BlockPtr> secret_chain_;
 };
 
 #endif  // _SRC_PEER_H_

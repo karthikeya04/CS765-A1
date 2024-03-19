@@ -92,6 +92,9 @@ class Blockchain {
 
     BlockPtr CreateValidBlock();
 
+    // id of longest visible chain's last block
+    int GetLVC();
+
     // return true if the longest chain in the blockchain ends at the given
     // block. Longest chain ties are broken using chain_gen_time
     bool IsLongest(int block_id) const;
