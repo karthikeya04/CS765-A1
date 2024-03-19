@@ -40,7 +40,7 @@ void Network::Init() {
     auto num_low_cpu = params_->num_low_cpu;
     auto num_high_cpu = N-2 - num_low_cpu;
     auto zeta1 = params_->hashPower_self1;
-    auto zeta2 = params_->hashPower_self1;
+    auto zeta2 = params_->hashPower_self2;
     double slow_peer_hashing_power = 
         (1.0 - zeta1 - zeta2) / (10 * num_high_cpu + num_low_cpu);
 
