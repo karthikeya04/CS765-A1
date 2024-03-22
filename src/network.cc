@@ -187,10 +187,14 @@ double Network::Link::latency(int64 message_length) {
 //-----------------------------------------------------------------------------
 
 void Network::End() {
-    // problem statement requires that we export the blockchains of all peers
-    for (auto &peer : peers_) {
+    int N = peers_.size();
+    for (int i = 0; i < N; ++i) {
+        auto peer = peers_[i];
         auto blockchain = peer->blockchain_;
-        blockchain->ExportToFile();
+        blockchain->ExportToFile(N,
+            i < N-2 ? deque<BlockPtr>{} : 
+            static_pointer_cast<SelfishPeer>(peer)->ShowSecretChain()
+        );
     }
     // TODO: export network and blockchain data to files for analysis
 }

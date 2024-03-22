@@ -92,8 +92,9 @@ class Blockchain {
 
     BlockPtr CreateValidBlock();
 
-    // id of longest visible chain's last block
-    int GetLVC();
+    // longest visible chain's latest block_id / length
+    int GetLVC(); // blk_id
+    int GetLVClength();
 
     // return true if the longest chain in the blockchain ends at the given
     // block. Longest chain ties are broken using chain_gen_time
@@ -119,7 +120,7 @@ class Blockchain {
 
     typedef std::vector<BlockPtr> Blocks;
     int Size();
-    void ExportToFile();
+    void ExportToFile(int num_peers, const deque<BlockPtr>& secret_chain);
 
    private:
     // callback to be called after adding a block to any chain (to update chain

@@ -13,7 +13,7 @@ all: $(EXECUTABLE)
 $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o $@ $(LDLIBS)
 
-%.o: %.cc $(HEADERS) args.json
+%.o: %.cc $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 run: all

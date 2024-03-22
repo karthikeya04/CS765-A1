@@ -86,6 +86,9 @@ int Blockchain::GetLVC() {
     assert(!leaf_blocks_.empty());
     return *leaf_blocks_.begin();
 }
+int Blockchain::GetLVClength(){
+    return blocks_metadata_[GetLVC()]->chain_length;
+}
 
 //-----------------------------------------------------------------------------
 
@@ -184,9 +187,15 @@ int Blockchain::Size() { return all_blocks_.size(); }
 
 //-----------------------------------------------------------------------------
 
-void Blockchain::ExportToFile() {
-    // TODO
+void Blockchain::ExportToFile(int num_peers, const deque<BlockPtr>& secret_chain) {
     GET_SHARED_PTR(owner, owner_)
+    
+    const int N = num_peers;
+    int total_blocks_mined_by_me = secret_chain.size();
+    int total_blocks_in_my_LVC = 0;
+    int adv1_blocks_in_my_LVC = 0;
+    int adv2_blocks_in_my_LVC = 0;
+    
     string fname = "blockchains/" + std::to_string(owner->id_) + ".dot"; 
     ofstream file(fname);
     file << "digraph D { node [ordering=out] rankdir=\"LR\";\n";
@@ -195,6 +204,11 @@ void Blockchain::ExportToFile() {
     assert(all_blocks_.find(latest_block_id) != all_blocks_.end());
     auto current = all_blocks_[latest_block_id];
     while (current->id != 0) {
+        
+        ++total_blocks_in_my_LVC;
+        if(current->txns[0].payee_id == N-1) ++adv1_blocks_in_my_LVC;
+        if(current->txns[0].payee_id == N  ) ++adv2_blocks_in_my_LVC;
+        
         file << current->id << " [fillcolor=lightgreen, style=filled]\n";
         assert(all_blocks_.find(current->par_block_id) != all_blocks_.end());
         current = all_blocks_[current->par_block_id];
@@ -205,14 +219,32 @@ void Blockchain::ExportToFile() {
         auto& block = p.second;
         if(block->par_block_id == -1) continue;
         if(!blocks_metadata_[block->id]->is_in_a_chain) continue;
-        file << block->id << " [shape=box, label=\"" << block->id 
-                        << "\n arrived at\n" << 
-                        blocks_metadata_[block->id]->arrival_time << "\"]\n";
+        
+        if(block->txns[0].payee_id == owner->id_) ++ total_blocks_mined_by_me;
+
+        file << block->id << " [shape=box, label=\"blk_id:\t" << block->id 
+                        << "\\lauthor:\t" << 
+                        block->txns[0].payee_id 
+                        << "\\larrival:\t" << 
+                        blocks_metadata_[block->id]->arrival_time 
+                        << "\"]\n";
         file << block->par_block_id << " -> " << block->id << "\n";
+    }
+
+    for(auto block : secret_chain){
+        file << block->id << " [fillcolor=orange, style=filled]\n";
+        file << block->id << " [shape=box, label=\"" << block->id << "\"]\n";
+        file << block->par_block_id << " -> " << block->id << " [style=dashed]\n";
     }
 
     file << "\n}";
     file.close();
+
+    cout << owner->id_ << "\t" << 
+        total_blocks_mined_by_me << "\t" << 
+        total_blocks_in_my_LVC << "\t" << 
+        adv1_blocks_in_my_LVC << "\t" << 
+        adv2_blocks_in_my_LVC << endl;
 }
 
 //-----------------------------------------------------------------------------

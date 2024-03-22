@@ -219,15 +219,17 @@ void SelfishPeer::BroadcastMinedBlkOp(BlockPtr block) {
 //-----------------------------------------------------------------------------
 
 void SelfishPeer::ReceiveAndForwardBlkOp(BlockPtr block, int /*sender_id*/) {
+    int chain_length = blockchain_->GetLVClength();
     GET_SHARED_PTR(sim, sim_);
     if (blockchain_->Contains(block->id)) return;
     blockchain_->Notify(block);
     if (!blockchain_->AddBlock(block)) {  // invalid block
         return;
     }
-    
-    if (!blockchain_->IsLongest(block->id)) return;
+    // increase might be >1 if blocks recvd out of order are finally added to tree just now
+    int increase = blockchain_->GetLVClength() - chain_length;
 
+    while(increase--) 
     switch (state_){
         case -1:
         case 0:
@@ -239,6 +241,7 @@ void SelfishPeer::ReceiveAndForwardBlkOp(BlockPtr block, int /*sender_id*/) {
         case 1:
             state_ = -1;
             BroadcastToNeighbours(secret_chain_.back());
+            secret_chain_.pop_front();
             break;
         case 2:
             state_ = 0;
@@ -246,6 +249,7 @@ void SelfishPeer::ReceiveAndForwardBlkOp(BlockPtr block, int /*sender_id*/) {
                 BroadcastToNeighbours(blk);
             }
             secret_chain_.clear();
+            // problem statement says to start a new attack, but why would the adversary pause his current mining event to start a new one on the same block?
             current_mining_event_->Abort();
             StartMining();
             break;

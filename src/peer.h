@@ -83,6 +83,8 @@ class SelfishPeer : public Peer {
    private: 
     int state_ = 0; // (0' is -1)
     deque<BlockPtr> secret_chain_;
+   public: 
+    const deque<BlockPtr>& ShowSecretChain(){return secret_chain_;} // for visualisation
 };
 
 #endif  // _SRC_PEER_H_
