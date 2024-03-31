@@ -6,6 +6,6 @@
     "num_low_cpu": 0,
     "Tdij": 96,
     "avg_blks_interarrival": 1,
-    "max_blocks": 200,
+    "max_blocks": 100,
     "Ttx": 100
 }

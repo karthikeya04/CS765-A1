@@ -240,11 +240,6 @@ void Blockchain::ExportToFile(int num_peers, const deque<BlockPtr>& secret_chain
     file << "\n}";
     file.close();
 
-    cout << owner->id_ << "\t" << 
-        total_blocks_mined_by_me << "\t" << 
-        total_blocks_in_my_LVC << "\t" << 
-        adv1_blocks_in_my_LVC << "\t" << 
-        adv2_blocks_in_my_LVC << endl;
 }
 
 //-----------------------------------------------------------------------------

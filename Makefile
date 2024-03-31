@@ -19,8 +19,7 @@ $(EXECUTABLE): $(OBJECTS)
 run: all
 	mkdir -p $(OUTDIR)
 	./$(EXECUTABLE)
-	# dot -Tpng $(OUTDIR)/*.dot -O
-	dot -Tpng $(OUTDIR)/96.dot $(OUTDIR)/97.dot $(OUTDIR)/98.dot $(OUTDIR)/99.dot $(OUTDIR)/100.dot -O && rm $(OUTDIR)/*.dot
+	dot -Tpng $(OUTDIR)/*.dot -O
 
 clean:
 	rm -f $(SRCDIR)/*.o $(EXECUTABLE)
